@@ -1,0 +1,21 @@
+[submodule "sva-frontend"]
+	path = sva-frontend
+	url = https://github.com/open-fv/sva-frontend.git
+[submodule "rtl-lowering"]
+	path = rtl-lowering
+	url = https://github.com/open-fv/rtl-lowering.git
+[submodule "btor2-emit"]
+	path = btor2-emit
+	url = https://github.com/open-fv/btor2-emit.git
+[submodule "fv-engine"]
+	path = fv-engine
+	url = https://github.com/open-fv/fv-engine.git
+[submodule "witness-remap"]
+	path = witness-remap
+	url = https://github.com/open-fv/witness-remap.git
+[submodule "fv-debug"]
+	path = fv-debug
+	url = https://github.com/open-fv/fv-debug.git
+[submodule "fv-benchmarks"]
+	path = fv-benchmarks
+	url = https://github.com/open-fv/fv-benchmarks.git

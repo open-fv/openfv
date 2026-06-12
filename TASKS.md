@@ -16,7 +16,7 @@ Every task is a **self-contained card**. An AI (or human) picking up a card need
 2. **Escalate, don't guess:** if the spec is ambiguous, incomplete, or a test contradicts it — stop, write up the ambiguity, tag `[FABLE]`. Each card lists known tripwires under *Escalate if*, but the rule applies generally.
 3. **Definition of done** for every card: acceptance criteria met, tests green in that repo's CI, `LICENSES.md` updated if a dependency was added, PR description cites the spec/LRM clauses implemented and affirms no copied code.
 4. Tasks within a phase may run in parallel unless *Depends* says otherwise.
-5. **Status tracking:** a card with no *Status* line is not started. Sessions picking up a card add `**Status:** 🔄 <branch/PR>`; on completion change it to `**Status:** ✅ <where the deliverable lives>`.
+5. **Status tracking:** a card with no *Status* line is not started. Sessions picking up a card add `**Status:** 🔄 <branch/PR>`; on completion change it to `**Status:** ✅ <where the deliverable lives>` **and append ✅ to the card's heading** so done tasks are scannable.
 
 **ID scheme:** `P<phase>.<n>`; ladder rungs are `R<n>` with step suffixes (see Phase 2).
 
@@ -26,10 +26,11 @@ Every task is a **self-contained card**. An AI (or human) picking up a card need
 
 **Milestone M0:** `openfv run benchmarks/fifo/fifo.f --top fifo --parse-only` parses + elaborates and exits 0; CI green in all repos.
 
-### P0.1 — Repo + org scaffolding `[SONNET]`
+### P0.1 — Repo + org scaffolding `[SONNET]` ✅
 **Repo:** all Tier-1 · **Depends:** —
 **Deliverable:** GitHub org `openfv`; the 8 repos created; each with Apache-2.0 `LICENSE`, `README.md` (one-paragraph role statement copied in spirit from the plan, written fresh), `CONTRIBUTING.md` (DCO sign-off required, clean-room rules summarized, link to plan §1), `.gitignore`, empty `LICENSES.md` with the table header, PR template containing the provenance affirmation checklist.
 **Accept:** All repos exist; flagship has the others as submodules; PR template renders the checklist.
+**Status:** ✅ Org is **`open-fv`** (`openfv` was taken by an unrelated 2017 org). 8 public repos; `openfv` + `btor2-emit` transferred from `abhigyan2001` (GitHub redirects the old URLs); scaffolding pushed to all; submodules wired in the flagship; P0.3 build templates copied verbatim into the three CIRCT repos. Note: two arXiv PDFs were removed from `btor2-emit` HEAD (no redistribution rights, repo now public) — they remain in git *history*; scrubbing history is an optional follow-up.
 
 ### P0.2 — License & provenance audit `[SONNET]`
 **Repo:** openfv · **Depends:** —
@@ -37,12 +38,12 @@ Every task is a **self-contained card**. An AI (or human) picking up a card need
 **Accept:** Every upstream in the plan §2 table has a row with a verdict; ambiguous cases carry an explicit `[FABLE]`-review flag rather than a guess.
 **Escalate if:** any license is not plainly one of the allowlisted ones — flag, don't interpret.
 
-### P0.3 — Pinned, reproducible builds `[OPUS]`
+### P0.3 — Pinned, reproducible builds `[OPUS]` ✅
 **Repo:** rtl-lowering, sva-frontend, btor2-emit (CIRCT-dependent repos) · **Depends:** P0.1
 **Deliverable:** A `versions.txt` in the flagship pinning the LLVM/CIRCT and slang SHAs; per-repo CMake builds that fetch/build against exactly those pins; ccache wiring; a `docs/BUILDING.md` with a from-scratch Ubuntu LTS recipe that a fresh machine can follow verbatim.
 **Accept:** Clean checkout → documented commands → all three repos build and run a hello-world `*-opt` tool. Same SHAs everywhere.
 **Escalate if:** the pinned CIRCT requires local patches to build — do not carry patches silently; flag for an upstream-first decision.
-**Status:** ✅ flagship: `versions.txt` (CIRCT/LLVM/slang pins, provenance-documented), `scripts/bootstrap-circt.sh` (build CIRCT once + ccache + pin-stamp), `cmake/OpenfvVersions.cmake` + `cmake/OpenfvCIRCT.cmake` (single-sourced pins, ccache wiring, pin-match verification), `docs/BUILDING.md` (from-scratch Ubuntu LTS recipe). Per-repo CMake + hello-world `*-opt` for rtl-lowering/sva-frontend/btor2-emit staged under `build-templates/` (the submodule repos don't exist yet — **P0.1 not done**; copy them in when it lands). Full build/acceptance run is deferred to CI (P0.4) / a dev box: cmake+CIRCT toolchain not present in the authoring env.
+**Status:** ✅ flagship: `versions.txt` (CIRCT/LLVM/slang pins, provenance-documented), `scripts/bootstrap-circt.sh` (build CIRCT once + ccache + pin-stamp), `cmake/OpenfvVersions.cmake` + `cmake/OpenfvCIRCT.cmake` (single-sourced pins, ccache wiring, pin-match verification), `docs/BUILDING.md` (from-scratch Ubuntu LTS recipe). Per-repo CMake + hello-world `*-opt` copied into rtl-lowering/sva-frontend/btor2-emit when P0.1 landed (`build-templates/` staging removed from the flagship). Full build/acceptance run still deferred to CI (P0.4) / a dev box: cmake+CIRCT toolchain not present in the authoring env — **P0.4 should flip this card to fully verified when its CIRCT cache build goes green.**
 
 ### P0.4 — CI templates `[OPUS]`
 **Repo:** all Tier-1 · **Depends:** P0.3
@@ -55,7 +56,7 @@ Every task is a **self-contained card**. An AI (or human) picking up a card need
 **Accept:** Designs lint clean under Verilator (`--lint-only`); `EXPECTED.md` arguments are checkable by a reader in minutes; no code sourced from existing designs online.
 **Escalate if:** unsure whether a property truly holds — say so in the PR instead of asserting it.
 
-### P0.6 — Interface contracts v0 `[FABLE]`
+### P0.6 — Interface contracts v0 `[FABLE]` ✅
 **Repo:** openfv (`docs/specs/`) · **Depends:** —
 **Deliverable:** Versioned specs for: **`.locmap`** (JSON schema: BTOR2 node/state id → hierarchical RTL name, type/width, source file:line, plus entries for monitor-internal signals and a marker for signals with no RTL counterpart), **`result.json`** (status PROVEN/CEX/UNKNOWN/TIMEOUT/ERROR per property, engine attribution, depth `k`, timings, witness file pointer, schema version), **CLI contract** for `openfv run` (flags, exit codes: 0 = all proven, 1 = CEX found, 2 = unknown/timeout, ≥10 = tool error), and the `.wit` handling convention (raw BTOR2 witness format passthrough, per btor2tools).
 **Accept:** JSON Schema files validate the included examples; downstream cards (P1.5, P1.6, P0.7) can implement from the spec alone without questions.

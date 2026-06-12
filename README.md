@@ -92,11 +92,14 @@ Stand up CI, `fv-benchmarks` with trivial designs, `slang` + CIRCT building. **M
 
 ## Status
 
-Early infrastructure stage. Currently active:
+Phase 0 (skeleton) in progress — see [TASKS.md](TASKS.md) for live per-task status. All repos live under the [open-fv](https://github.com/open-fv) org and are wired here as submodules:
 
-- [btor2-emit](https://github.com/abhigyan2001/btor2-emit) — MLIR → BTOR2 + locmap, working prototype
-- [sva-frontend](https://github.com/abhigyan2001/sva-frontend) — placeholder, Phase 2
-- [rtl-lowering](https://github.com/abhigyan2001/rtl-lowering) — placeholder, Phase 1
+- [btor2-emit](https://github.com/open-fv/btor2-emit) — MLIR → BTOR2 + locmap, working prototype
+- [sva-frontend](https://github.com/open-fv/sva-frontend), [rtl-lowering](https://github.com/open-fv/rtl-lowering) — scaffolded with pinned-CIRCT builds (P0.3)
+- [fv-engine](https://github.com/open-fv/fv-engine), [witness-remap](https://github.com/open-fv/witness-remap), [fv-benchmarks](https://github.com/open-fv/fv-benchmarks) — scaffolded, work starts per TASKS.md
+- [fv-debug](https://github.com/open-fv/fv-debug) — deferred until M4
+
+Interface contracts (`.locmap`, `result.json`, CLI, `.wit`) are specified in [docs/specs/](docs/specs/). Build recipe: [docs/BUILDING.md](docs/BUILDING.md).
 
 ## Contributing
 
