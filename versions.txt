@@ -1,0 +1,44 @@
+# openfv — pinned upstream versions (single source of truth)
+#
+# Task P0.3 (TASKS.md). This file is THE pin: every CIRCT-dependent repo
+# (rtl-lowering, sva-frontend, btor2-emit) builds against exactly these SHAs,
+# and CI keys its dependency cache on the hash of this file. Do not pin
+# versions anywhere else — read them from here (see cmake/OpenfvVersions.cmake).
+#
+# Format: one `KEY=VALUE` per line. Comments start with `#`. No shell expansion.
+# Bump procedure: change a SHA here, run scripts/bootstrap-circt.sh from a clean
+# prefix, run each repo's tests, and only then land the bump in a flagship PR
+# (see PROJECT_PLAN.md §3 "submodule + flagship pattern").
+#
+# ---------------------------------------------------------------------------
+# Provenance of these pins (recorded so the choice is auditable, not magic):
+#
+#   * CIRCT_SHA is a commit on llvm/circt main that contains the slang-based
+#     Verilog frontend (lib/Conversion/ImportVerilog + the `circt-verilog`
+#     tool) that P0.7 invokes. Older `sifive/*` release tags predate that
+#     frontend and are therefore unusable for this project.
+#   * LLVM_SHA is NOT chosen independently: it is the exact commit that the
+#     `llvm` submodule of llvm/circt points to at CIRCT_SHA. Building CIRCT
+#     against any other LLVM is unsupported. To re-derive:
+#         curl -s "https://api.github.com/repos/llvm/circt/contents/llvm?ref=$CIRCT_SHA" | jq -r .sha
+#   * SLANG_TAG/SLANG_SHA is the slang version that CIRCT's FetchContent pins
+#     at CIRCT_SHA (CMakeLists.txt, CIRCT_SLANG_FRONTEND_ENABLED block:
+#     `FetchContent_Declare(slang ... GIT_TAG v10.0)`). When we build CIRCT
+#     with -DCIRCT_SLANG_FRONTEND_ENABLED=ON -DCIRCT_SLANG_BUILD_FROM_SOURCE=ON,
+#     CIRCT fetches and statically links this slang for us — our repos do not
+#     fetch slang separately. SLANG_SHA is recorded here for provenance and for
+#     the P0.2 license audit; it must match what the pinned CIRCT actually pulls.
+# ---------------------------------------------------------------------------
+
+# llvm/circt — Moore/HW/Comb/Seq/ltl/verif dialects, MooreToCore, BTOR2 export,
+# circt-verilog frontend. Apache-2.0 WITH LLVM-exception.
+CIRCT_SHA=e003d2c8f9fdc858619797605a8fcb2965c5c3bf
+
+# llvm/llvm-project — pinned transitively by CIRCT_SHA's `llvm` submodule.
+# Apache-2.0 WITH LLVM-exception. Do not change without changing CIRCT_SHA.
+LLVM_SHA=b7152ff7026a05282b6ae91ccf150ede0217b08a
+
+# MikePopoloski/slang — SV-2017 parse + elaboration. MIT.
+# Built-from-source by CIRCT via FetchContent at the tag below.
+SLANG_TAG=v10.0
+SLANG_SHA=6c4fa91bb592af0bd9fe8f359a721875a5188bfe
