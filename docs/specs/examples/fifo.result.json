@@ -1,0 +1,45 @@
+{
+  "result_version": "0.1",
+  "tool": { "name": "openfv", "version": "0.0.1" },
+  "design": {
+    "top": "fifo",
+    "btor2_file": "fifo.btor2",
+    "locmap_file": "fifo.locmap.json"
+  },
+  "run": {
+    "started_utc": "2026-06-12T10:30:00Z",
+    "wall_seconds": 14.7,
+    "engines": ["btormc", "pono"]
+  },
+  "properties": [
+    {
+      "name": "fifo.p_no_overflow",
+      "btor2_id": 30,
+      "status": "CEX",
+      "engine": "btormc",
+      "method": "bmc",
+      "depth": 5,
+      "witness_file": "fifo.p_no_overflow.wit",
+      "time_seconds": 0.8
+    },
+    {
+      "name": "fifo.p_count_in_range",
+      "btor2_id": 31,
+      "status": "BOUNDED_CLEAN",
+      "engine": "btormc",
+      "method": "bmc",
+      "depth": 20,
+      "time_seconds": 2.1,
+      "detail": "no violation within bound 20; this is NOT a proof"
+    }
+  ],
+  "summary": {
+    "proven": 0,
+    "cex": 1,
+    "bounded_clean": 1,
+    "unknown": 0,
+    "timeout": 0,
+    "error": 0
+  },
+  "exit_code": 1
+}

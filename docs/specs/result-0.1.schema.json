@@ -1,0 +1,90 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://github.com/openfv/openfv/docs/specs/result-0.1.schema.json",
+  "title": "openfv result.json, v0.1",
+  "type": "object",
+  "required": ["result_version", "tool", "design", "run", "properties", "summary", "exit_code"],
+  "additionalProperties": false,
+  "properties": {
+    "result_version": { "const": "0.1" },
+    "tool": {
+      "type": "object",
+      "required": ["name", "version"],
+      "additionalProperties": false,
+      "properties": {
+        "name": { "type": "string", "minLength": 1 },
+        "version": { "type": "string", "minLength": 1 }
+      }
+    },
+    "design": {
+      "type": "object",
+      "required": ["top"],
+      "additionalProperties": false,
+      "properties": {
+        "top": { "type": "string", "minLength": 1 },
+        "btor2_file": { "type": "string" },
+        "locmap_file": { "type": "string" }
+      }
+    },
+    "run": {
+      "type": "object",
+      "required": ["started_utc", "wall_seconds"],
+      "additionalProperties": false,
+      "properties": {
+        "started_utc": { "type": "string", "format": "date-time" },
+        "wall_seconds": { "type": "number", "minimum": 0 },
+        "engines": { "type": "array", "items": { "type": "string" } }
+      }
+    },
+    "properties": {
+      "type": "array",
+      "items": { "$ref": "#/$defs/propResult" }
+    },
+    "summary": {
+      "type": "object",
+      "required": ["proven", "cex", "bounded_clean", "unknown", "timeout", "error"],
+      "additionalProperties": false,
+      "properties": {
+        "proven": { "type": "integer", "minimum": 0 },
+        "cex": { "type": "integer", "minimum": 0 },
+        "bounded_clean": { "type": "integer", "minimum": 0 },
+        "unknown": { "type": "integer", "minimum": 0 },
+        "timeout": { "type": "integer", "minimum": 0 },
+        "error": { "type": "integer", "minimum": 0 }
+      }
+    },
+    "exit_code": { "enum": [0, 1, 2] }
+  },
+  "$defs": {
+    "propResult": {
+      "type": "object",
+      "required": ["name", "status", "time_seconds"],
+      "additionalProperties": false,
+      "properties": {
+        "name": { "type": "string", "pattern": "^[A-Za-z0-9_.]+$" },
+        "btor2_id": { "type": "integer", "minimum": 1 },
+        "status": { "enum": ["PROVEN", "CEX", "BOUNDED_CLEAN", "UNKNOWN", "TIMEOUT", "ERROR"] },
+        "engine": { "type": ["string", "null"] },
+        "method": { "enum": ["bmc", "k-induction", "ic3ia", "other", null] },
+        "depth": { "type": ["integer", "null"], "minimum": 0 },
+        "witness_file": { "type": "string", "minLength": 1 },
+        "time_seconds": { "type": "number", "minimum": 0 },
+        "detail": { "type": "string" }
+      },
+      "allOf": [
+        {
+          "if": { "properties": { "status": { "const": "CEX" } }, "required": ["status"] },
+          "then": { "required": ["witness_file", "depth"] }
+        },
+        {
+          "if": { "properties": { "status": { "const": "PROVEN" } }, "required": ["status"] },
+          "then": { "required": ["method", "engine"] }
+        },
+        {
+          "if": { "properties": { "status": { "const": "BOUNDED_CLEAN" } }, "required": ["status"] },
+          "then": { "required": ["depth"] }
+        }
+      ]
+    }
+  }
+}

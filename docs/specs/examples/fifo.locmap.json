@@ -1,0 +1,84 @@
+{
+  "locmap_version": "0.1",
+  "generator": { "tool": "btor2-emit", "version": "0.0.1" },
+  "design": {
+    "top": "fifo",
+    "btor2_file": "fifo.btor2",
+    "source_files": ["rtl/fifo.sv", "tb/fifo_sva.sv"]
+  },
+  "step": { "kind": "single-clock", "clock_path": "fifo.clk", "edge": "posedge" },
+  "signals": [
+    {
+      "btor2_id": 3,
+      "kind": "input",
+      "path": "fifo.push",
+      "width": 1,
+      "origin": "user",
+      "source": { "file": "rtl/fifo.sv", "line": 5 }
+    },
+    {
+      "btor2_id": 4,
+      "kind": "input",
+      "path": "fifo.pop",
+      "width": 1,
+      "origin": "user",
+      "source": { "file": "rtl/fifo.sv", "line": 6 }
+    },
+    {
+      "btor2_id": 9,
+      "kind": "state",
+      "path": "fifo.wr_ptr",
+      "width": 4,
+      "signed": false,
+      "origin": "user",
+      "source": { "file": "rtl/fifo.sv", "line": 14, "col": 9 }
+    },
+    {
+      "btor2_id": 12,
+      "kind": "memory",
+      "path": "fifo.mem",
+      "width": 8,
+      "memory": { "depth": 16, "element_width": 8 },
+      "origin": "user",
+      "source": { "file": "rtl/fifo.sv", "line": 16 }
+    },
+    {
+      "btor2_id": 21,
+      "kind": "node",
+      "path": "fifo.full",
+      "width": 1,
+      "origin": "user",
+      "source": { "file": "rtl/fifo.sv", "line": 22 }
+    },
+    {
+      "btor2_id": 27,
+      "kind": "state",
+      "path": "fifo._openfv.p_no_overflow.armed",
+      "width": 1,
+      "origin": "monitor"
+    }
+  ],
+  "properties": [
+    {
+      "btor2_id": 30,
+      "role": "bad",
+      "name": "fifo.p_no_overflow",
+      "source": { "file": "tb/fifo_sva.sv", "line": 17, "col": 3 },
+      "text": "p_no_overflow: assert property (@(posedge clk) !(full && push));"
+    },
+    {
+      "btor2_id": 33,
+      "role": "constraint",
+      "name": "fifo.a_no_pop_when_empty",
+      "source": { "file": "tb/fifo_sva.sv", "line": 21 },
+      "text": "a_no_pop_when_empty: assume property (@(posedge clk) empty |-> !pop);"
+    }
+  ],
+  "unmapped": [
+    {
+      "btor2_id": 18,
+      "reason": "optimized-away",
+      "note": "rd_ptr folded into mem read-index expression during lowering"
+    }
+  ]
+}

@@ -1,0 +1,115 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://github.com/openfv/openfv/docs/specs/locmap-0.1.schema.json",
+  "title": "openfv .locmap sidecar, v0.1",
+  "type": "object",
+  "required": ["locmap_version", "generator", "design", "step", "signals", "properties", "unmapped"],
+  "additionalProperties": false,
+  "properties": {
+    "locmap_version": { "const": "0.1" },
+    "generator": {
+      "type": "object",
+      "required": ["tool", "version"],
+      "additionalProperties": false,
+      "properties": {
+        "tool": { "type": "string", "minLength": 1 },
+        "version": { "type": "string", "minLength": 1 }
+      }
+    },
+    "design": {
+      "type": "object",
+      "required": ["top", "btor2_file"],
+      "additionalProperties": false,
+      "properties": {
+        "top": { "type": "string", "minLength": 1 },
+        "btor2_file": { "type": "string", "minLength": 1 },
+        "source_files": { "type": "array", "items": { "type": "string" } }
+      }
+    },
+    "step": {
+      "type": "object",
+      "required": ["kind", "clock_path", "edge"],
+      "additionalProperties": false,
+      "properties": {
+        "kind": { "const": "single-clock" },
+        "clock_path": { "type": "string", "minLength": 1 },
+        "edge": { "enum": ["posedge", "negedge"] }
+      }
+    },
+    "signals": {
+      "type": "array",
+      "items": { "$ref": "#/$defs/signal" }
+    },
+    "properties": {
+      "type": "array",
+      "items": { "$ref": "#/$defs/property" }
+    },
+    "unmapped": {
+      "type": "array",
+      "items": { "$ref": "#/$defs/unmapped" }
+    }
+  },
+  "$defs": {
+    "sourceLoc": {
+      "type": "object",
+      "required": ["file", "line"],
+      "additionalProperties": false,
+      "properties": {
+        "file": { "type": "string", "minLength": 1 },
+        "line": { "type": "integer", "minimum": 1 },
+        "col": { "type": "integer", "minimum": 1 }
+      }
+    },
+    "signal": {
+      "type": "object",
+      "required": ["btor2_id", "kind", "path", "width", "origin"],
+      "additionalProperties": false,
+      "properties": {
+        "btor2_id": { "type": "integer", "minimum": 1 },
+        "kind": { "enum": ["input", "state", "memory", "node"] },
+        "path": { "type": "string", "minLength": 1 },
+        "width": { "type": "integer", "minimum": 1 },
+        "signed": { "type": "boolean", "default": false },
+        "memory": {
+          "type": "object",
+          "required": ["depth", "element_width"],
+          "additionalProperties": false,
+          "properties": {
+            "depth": { "type": "integer", "minimum": 1 },
+            "element_width": { "type": "integer", "minimum": 1 }
+          }
+        },
+        "source": { "$ref": "#/$defs/sourceLoc" },
+        "origin": { "enum": ["user", "monitor", "lowering"] }
+      },
+      "allOf": [
+        {
+          "if": { "properties": { "kind": { "const": "memory" } } },
+          "then": { "required": ["memory"] }
+        }
+      ]
+    },
+    "property": {
+      "type": "object",
+      "required": ["btor2_id", "role", "name"],
+      "additionalProperties": false,
+      "properties": {
+        "btor2_id": { "type": "integer", "minimum": 1 },
+        "role": { "enum": ["bad", "constraint", "justice", "fairness"] },
+        "name": { "type": "string", "pattern": "^[A-Za-z0-9_.]+$" },
+        "source": { "$ref": "#/$defs/sourceLoc" },
+        "text": { "type": "string" }
+      }
+    },
+    "unmapped": {
+      "type": "object",
+      "required": ["btor2_id", "reason"],
+      "additionalProperties": false,
+      "properties": {
+        "btor2_id": { "type": "integer", "minimum": 1 },
+        "reason": { "enum": ["optimized-away", "no-location", "internal"] },
+        "note": { "type": "string" }
+      }
+    }
+  }
+}

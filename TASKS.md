@@ -16,6 +16,7 @@ Every task is a **self-contained card**. An AI (or human) picking up a card need
 2. **Escalate, don't guess:** if the spec is ambiguous, incomplete, or a test contradicts it — stop, write up the ambiguity, tag `[FABLE]`. Each card lists known tripwires under *Escalate if*, but the rule applies generally.
 3. **Definition of done** for every card: acceptance criteria met, tests green in that repo's CI, `LICENSES.md` updated if a dependency was added, PR description cites the spec/LRM clauses implemented and affirms no copied code.
 4. Tasks within a phase may run in parallel unless *Depends* says otherwise.
+5. **Status tracking:** a card with no *Status* line is not started. Sessions picking up a card add `**Status:** 🔄 <branch/PR>`; on completion change it to `**Status:** ✅ <where the deliverable lives>`.
 
 **ID scheme:** `P<phase>.<n>`; ladder rungs are `R<n>` with step suffixes (see Phase 2).
 
@@ -57,6 +58,7 @@ Every task is a **self-contained card**. An AI (or human) picking up a card need
 **Repo:** openfv (`docs/specs/`) · **Depends:** —
 **Deliverable:** Versioned specs for: **`.locmap`** (JSON schema: BTOR2 node/state id → hierarchical RTL name, type/width, source file:line, plus entries for monitor-internal signals and a marker for signals with no RTL counterpart), **`result.json`** (status PROVEN/CEX/UNKNOWN/TIMEOUT/ERROR per property, engine attribution, depth `k`, timings, witness file pointer, schema version), **CLI contract** for `openfv run` (flags, exit codes: 0 = all proven, 1 = CEX found, 2 = unknown/timeout, ≥10 = tool error), and the `.wit` handling convention (raw BTOR2 witness format passthrough, per btor2tools).
 **Accept:** JSON Schema files validate the included examples; downstream cards (P1.5, P1.6, P0.7) can implement from the spec alone without questions.
+**Status:** ✅ `docs/specs/` (specs + schemas + examples + `check_specs.py`; wire the checker into CI via P0.4)
 
 ### P0.7 — openfv CLI skeleton `[SONNET]`
 **Repo:** openfv · **Depends:** P0.3, P0.6
