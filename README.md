@@ -100,6 +100,6 @@ Early infrastructure stage. Currently active:
 
 ## Contributing
 
-See the full architecture doc: [PROJECT_PLAN.md](PROJECT_PLAN.md).
+See the full architecture doc: [PROJECT_PLAN.md](PROJECT_PLAN.md), and the task-level work breakdown with per-task difficulty tiers and acceptance criteria: [TASKS.md](TASKS.md). Read the plan's legal/clean-room policy (§1) and execution model (§5) before picking up a task.
 
 Each repo has its own CI. This flagship repo's CI runs cross-repo integration tests against `fv-benchmarks` (nightly once benchmarks exist). Correctness regressions are release-blocking; speed regressions are warnings.
