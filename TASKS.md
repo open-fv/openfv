@@ -64,10 +64,11 @@ Every task is a **self-contained card**. An AI (or human) picking up a card need
 **Accept:** JSON Schema files validate the included examples; downstream cards (P1.5, P1.6, P0.7) can implement from the spec alone without questions.
 **Status:** ✅ `docs/specs/` (specs + schemas + examples + `check_specs.py`; wire the checker into CI via P0.4)
 
-### P0.7 — openfv CLI skeleton `[SONNET]`
+### P0.7 — openfv CLI skeleton `[SONNET]` 🟡 (awaiting merge: openfv#5)
 **Repo:** openfv · **Depends:** P0.3, P0.6
 **Deliverable:** `openfv` CLI (suggest Python or thin C++ — implementer's choice) supporting `run <file.f> --top <name> --parse-only`: reads the `.f` filelist, invokes the CIRCT/slang frontend (`circt-verilog` or equivalent per P0.3 builds) to parse + elaborate, reports errors with file/line, uses the P0.6 exit codes. No verification yet.
 **Accept:** Succeeds on all P0.5 benchmarks; clean, non-stack-trace error on a syntax-broken input; exit codes per spec.
+**Status:** 🟡 Branch `p0.7-cli`, PR openfv#5. Implementation complete; all 10 CLI tests pass. P0.5 benchmark validation blocked by `circt-verilog` limitation: all benchmarks use `default clocking` blocks (a ClockingBlock SVA construct), which the pinned CIRCT version does not support — circt-verilog exits 1 with file:line diagnostics, and the CLI correctly propagates this as exit 11. Escalation filed in PR description; P1.1 gap survey should cover this.
 
 ---
 

@@ -2,6 +2,11 @@
 # Heavy (CIRCT/LLVM checkout + build + install); never committed.
 /.openfv-deps/
 
+# Python bytecode
+__pycache__/
+*.pyc
+*.pyo
+
 # CMake build trees
 build/
 */build/
