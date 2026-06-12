@@ -121,8 +121,6 @@ for repo in rtl-lowering sva-frontend btor2-emit; do
 done
 ```
 
-(Before P0.1 lands, use `-S build-templates/$repo -B build-templates/$repo/build
--DOPENFV_FLAGSHIP_DIR=$PWD`.)
 
 ---
 
@@ -131,13 +129,15 @@ done
 Each repo produces a `*-opt` tool linked against the pinned CIRCT:
 
 ```sh
-rtl-lowering/build/bin/rtl-lowering-opt --help        # prints usage, exits 0
-echo 'hw.module @top() {}' | rtl-lowering/build/bin/rtl-lowering-opt  # round-trips HW IR
+rtl-lowering/build/tools/rtl-lowering-opt/rtl-lowering-opt --help   # prints usage, exits 0
+echo 'hw.module @top() {hw.output}' \
+  | rtl-lowering/build/tools/rtl-lowering-opt/rtl-lowering-opt      # round-trips HW IR
 ```
 
-The same for `sva-frontend/build/bin/sva-frontend-opt` and
-`btor2-emit/build/bin/btor2-emit-opt`. All three link the *same* CIRCT install,
-so the pin is identical everywhere — which is the point of `versions.txt`.
+The same for `sva-frontend/build/tools/sva-frontend-opt/sva-frontend-opt` and
+`btor2-emit/build/tools/btor2-emit-opt/btor2-emit-opt`. All three link the
+*same* CIRCT install, so the pin is identical everywhere — which is the point
+of `versions.txt`.
 
 ---
 
@@ -147,6 +147,7 @@ so the pin is identical everywhere — which is the point of `versions.txt`.
 |---|---|
 | `openfv: installed CIRCT (X) != pin (Y)` at configure | The install is stale relative to `versions.txt`. Re-run `scripts/bootstrap-circt.sh`. |
 | `no pin stamp at .../share/openfv/circt-pin.txt` (warning) | CIRCT wasn't installed by `bootstrap-circt.sh`. Re-run it, or set `-DOPENFV_DEPS_PREFIX` to the right prefix. |
+| Build dies mid-way on a memory-limited host (e.g. WSL: compiles `Killed`, or the whole WSL VM crashes with `Wsl/Service/E_UNEXPECTED`) | The big LLVM/MLIR translation units need ~1–2 GB *each*. Lower `--jobs` (8 on a 16 GB host), keep `OPENFV_LINK_JOBS=2`, and consider containing the build: `systemd-run --user --scope -p MemoryMax=10G -p OOMPolicy=continue -- scripts/bootstrap-circt.sh --jobs 8`, then re-run to sweep up any OOM-killed stragglers (ninja/ccache make retries cheap). On WSL also set a Windows-side `.wslconfig` with an explicit `memory=` cap and `autoMemoryReclaim=gradual`. |
 | `Could not find a package configuration file provided by "MLIR"/"CIRCT"` | `OPENFV_DEPS_PREFIX` not set/exported, or bootstrap didn't finish. |
 | LLVM submodule SHA mismatch (bootstrap aborts) | `LLVM_SHA` in `versions.txt` is out of sync with `CIRCT_SHA`. Re-derive it (command is documented in `versions.txt`) and update the file. |
 | C++20 errors building slang | Default compiler too old; install `g++-13`/`clang` and pass `-DCMAKE_CXX_COMPILER=...` to the bootstrap configure. |

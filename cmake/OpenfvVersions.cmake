@@ -26,7 +26,9 @@ function(openfv_read_versions versions_file)
       "Point OPENFV_VERSIONS_FILE at the flagship's versions.txt.")
   endif()
 
-  file(STRINGS "${versions_file}" _lines)
+  # ENCODING UTF-8: without it, file(STRINGS) treats multibyte characters
+  # (e.g. an em-dash in a comment) as binary and splits lines at them.
+  file(STRINGS "${versions_file}" _lines ENCODING UTF-8)
   foreach(_line IN LISTS _lines)
     # Skip blanks and comments.
     string(STRIP "${_line}" _line)
