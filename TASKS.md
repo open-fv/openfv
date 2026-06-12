@@ -32,11 +32,12 @@ Every task is a **self-contained card**. An AI (or human) picking up a card need
 **Accept:** All repos exist; flagship has the others as submodules; PR template renders the checklist.
 **Status:** ✅ Org is **`open-fv`** (`openfv` was taken by an unrelated 2017 org). 8 public repos; `openfv` + `btor2-emit` transferred from `abhigyan2001` (GitHub redirects the old URLs); scaffolding pushed to all; submodules wired in the flagship; P0.3 build templates copied verbatim into the three CIRCT repos. Note: two arXiv PDFs were removed from `btor2-emit` HEAD (no redistribution rights, repo now public) — they remain in git *history*; scrubbing history is an optional follow-up.
 
-### P0.2 — License & provenance audit `[SONNET]`
+### P0.2 — License & provenance audit `[SONNET]` ✅
 **Repo:** openfv · **Depends:** —
 **Deliverable:** `LICENSES.md` in the flagship covering every Tier-0 upstream: exact license (read the upstream's LICENSE file, do not trust memory), how we consume it (linked / subprocess / dev-only), allowlist verdict per plan §1.3. Explicitly resolve: **AVR** (license unclear in the plan — find it; if non-permissive or absent, mark "subprocess-only pending review" or "do not use"), **Surfer** (EUPL — external program only; note that Phase 5 plugin work needs a fresh review), **GTKWave/libfst** (GPLv2 — never link; record the `vcd2fst`-as-subprocess decision), **Verilator/Icarus** (dev/CI subprocess only).
 **Accept:** Every upstream in the plan §2 table has a row with a verdict; ambiguous cases carry an explicit `[FABLE]`-review flag rather than a guess.
 **Escalate if:** any license is not plainly one of the allowlisted ones — flag, don't interpret.
+**Status:** ✅ `LICENSES.md` in flagship covers all Tier-0 upstreams (the 10 from the plan §2 table **plus btormc/Boolector, MIT** — used by P1.6 but missing from the table; row added). Licenses verified from upstream LICENSE/COPYING files directly. Key findings: slang/CIRCT/Pono/Bitwuzla/btor2tools/btormc all on allowlist (MIT/Apache-2/BSD-3); **AVR is GPLv3** — `[FABLE]` review (2026-06-12) **dropped it from the plan**: redundant with Pono+btormc for all milestones, GPL stack underneath (Yices 2), permanent compliance surface; P3.2 closed blocked-by-license with re-entry conditions in `LICENSES.md`; Verilator (LGPLv3) and Icarus (GPLv2) approved as process-boundary dev/CI-only; GTKWave/libfst (GPLv2) approved as never-linked with vcd2fst subprocess decision recorded; Surfer (EUPL-1.2) approved for current file-based use, Phase 5 plugin work flagged for `[FABLE]` review.
 
 ### P0.3 — Pinned, reproducible builds `[OPUS]` ✅
 **Repo:** rtl-lowering, sva-frontend, btor2-emit (CIRCT-dependent repos) · **Depends:** P0.1
@@ -190,10 +191,11 @@ Rungs, in order (later rungs may start once their dependency rung passes (d)):
 **Deliverable:** Add Pono's k-induction and IC3IA modes to the runner; per-engine config (solver=Bitwuzla, limits); UNSAT/invariant results mapped to PROVEN in `result.json` with engine + method attribution.
 **Accept:** Counter benchmark gets PROVEN (not bounded-clean) by at least one method; CEX benchmarks still report CEX identically to v0.
 
-### P3.2 — AVR integration `[OPUS]`
+### P3.2 — AVR integration `[OPUS]` ✅ *(closed: blocked-by-license)*
 **Repo:** fv-engine · **Depends:** P3.1, P0.2 (license verdict)
 **Deliverable:** AVR as a subprocess engine behind the same interface — only if P0.2 cleared it. If P0.2 blocked it, this card closes as "blocked-by-license" and the portfolio ships without AVR.
 **Accept:** Same contract tests as P3.1 pass with AVR; or documented closure.
+**Status:** ✅ Closed as blocked-by-license per the P0.2 `[FABLE]` review (2026-06-12): AVR is GPLv3 and was dropped from the portfolio — documented closure with rationale and re-entry conditions in flagship `LICENSES.md`. The P3.3 portfolio ships without AVR (Pono modes + btormc). Do not pick this card up unless the LICENSES.md re-entry conditions are met and a fresh `[FABLE]` sign-off is recorded.
 
 ### P3.3 — Portfolio racing `[OPUS]`
 **Repo:** fv-engine · **Depends:** P3.1
