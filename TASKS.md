@@ -271,3 +271,81 @@ Deliberately coarse — do not break down further until M4 ships. Entry conditio
 | HWMCC BTOR2 set import for fv-engine stress testing | `[SONNET]` | Engine-only benchmarks; no frontend involved. |
 | Upstreaming PRs to CIRCT (each P1.2/P1.5 pass flagged upstream-candidate) | `[OPUS]` impl, `[FABLE]` review | One PR per pass; keep our staging copy until the upstream pin includes it. |
 | README/plan drift check — keep README, plan, and this file consistent at each milestone | `[SONNET]` | At M0–M4. |
+
+---
+
+## Benchmark expansion — deferred design cards
+
+These cards extend `fv-benchmarks` with more complex designs. Each is gated on a
+phase milestone and requires a `[FABLE]` sign-off on property correctness before
+implementation may be merged. Do not start implementation without that sign-off.
+
+### P0.5.b — fv-benchmarks: LRU arbiter + CAM `[SONNET]`
+**Repo:** fv-benchmarks · **Depends:** P1.6 (golden witnesses available for result validation)  
+**Deliverables:**
+- `lru_arbiter/` — N-way (N=4) LRU replacement-policy arbiter; tracks recency via a
+  priority matrix; grants the LRU slot on an allocate request.  Properties:
+  `p_one_hot_alloc` (HOLDS), `p_alloc_requires_valid_req` (HOLDS),
+  `p_mru_never_evicted_immediately` (CEX when LRU logic is swapped with FIFO eviction).
+- `cam/` — 4-entry, WIDTH=8 content-addressable memory; each entry has a valid bit,
+  tag, and data; lookup returns hit/miss + data.  Properties: `p_no_hit_without_valid`
+  (HOLDS), `p_hit_returns_correct_data` (HOLDS), `p_tag_collision_safe` (CEX with an
+  intentional aliasing bug where entries with matching lower tag bits collide).
+
+**Accept:** designs lint-clean; EXPECTED.md arguments checkable in minutes.  
+**`[FABLE]` gate:** LRU matrix invariant and CAM hit semantics require a `[FABLE]` review
+of the property set before the card merges — the reachability argument for the LRU
+eviction order is subtle.  
+**Escalate if:** unsure whether a property holds across all reachable initial states.
+
+---
+
+### P0.5.c — fv-benchmarks: semaphore + N×N crossbar switch `[SONNET]`
+**Repo:** fv-benchmarks · **Depends:** Phase 2 R1 done (`##` and `|->` sequences available in sva-frontend)  
+**Deliverables:**
+- `semaphore/` — binary and counting (MAX=4) semaphore; `acquire` decrements count
+  (blocks at 0), `release` increments count.  Properties: `p_count_bounded` (HOLDS),
+  `p_acquire_blocks_at_zero` (HOLDS), `p_over_release` (CEX: `release` without a prior
+  `acquire` can push count above MAX when the release guard is absent).  The key
+  correctness property `p_acquire_release_pair` uses `|-> ##[1:$]` and requires R1.
+- `crossbar/` — N×N (N=4) non-blocking switch; each output row selects one input via a
+  `sel[N-1:0]` one-hot vector.  Properties: `p_output_valid` (HOLDS),
+  `p_no_grant_collision` (HOLDS: each input drives at most one output simultaneously
+  when `sel` is one-hot per row), `p_sel_bypass` (CEX: asserting that output matches an
+  *unselected* input — always false when `sel` is correct).
+
+**Accept:** designs lint-clean; EXPECTED.md arguments checkable.  
+**`[FABLE]` gate:** the semaphore acquire/release sequenced property must be reviewed
+by `[FABLE]` before merging (it is the first property that exercises `##[m:n]` in this
+repo — the conformance argument must be checked against IEEE 1800-2017 §16.9).  
+Crossbar structural properties do not require sequences and may merge independently.
+
+---
+
+### P0.5.d — fv-benchmarks: reorder buffer, scoreboard, load/issue queue `[FABLE-led]`
+**Repo:** fv-benchmarks · **Depends:** Phase 2 R1–R8 done; Phase 3 M3 (unbounded proofs working)  
+**Entry conditions (all must be met before any sub-card starts):**
+1. M3 shipped (unbounded PROVEN on a non-trivial benchmark).
+2. At least one external user has requested microarchitecture benchmark coverage.
+3. A `[FABLE]`-authored spec doc exists for each sub-card (see gate below).
+
+These are processor-microarchitecture blocks whose key correctness properties —
+in-order commit, WAW/WAR hazard freedom, no-lost-issue — require:
+- SVA sequences with temporal operators (R1–R4 minimum; R10 local variables for
+  scoreboard register tracking).
+- Unbounded proofs: bounded model checking at any fixed depth cannot establish
+  ordering properties over an unbounded instruction stream.
+- `[FABLE]`-authored semantics: "in-order commit" and "hazard freedom" are
+  architectural concepts derived from the ISA spec (e.g., RISC-V unprivileged ISA),
+  not implementable from intuition. A wrong property here silently passes bad RTL.
+
+**Sub-cards** (do not decompose further until M3 ships):
+- `rob/` — reorder buffer (DEPTH=8): in-order commit, no phantom completions.
+- `scoreboard/` — Tomasulo-style: WAW/WAR hazard freedom, no stale-read.
+- `ldq_isq/` — load/issue queue pair: hazard detection, no lost issue.
+
+**`[FABLE]` gate (mandatory before any implementation):**  
+Fable must: (1) identify and cite the architecture spec §§ for each property;
+(2) author the property set and monitor-automaton constructions in a spec doc
+under `fv-benchmarks/docs/`; (3) sign off the conformance vector set (P2.4 format).  
+**Do NOT implement any sub-card without a `[FABLE]`-authored and signed-off spec.**
