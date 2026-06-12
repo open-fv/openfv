@@ -31,7 +31,7 @@ openfv (this repo — flagship)
  ├── sva-frontend ── slang, CIRCT ltl/verif dialects
  ├── rtl-lowering ── CIRCT MooreToCore
  ├── btor2-emit ───── CIRCT convert-hw-to-btor2
- ├── fv-engine ────── Pono, AVR, btormc, Bitwuzla  [planned]
+ ├── fv-engine ────── Pono, btormc, Bitwuzla       [planned]
  ├── witness-remap ── btor2tools, libfst            [planned]
  ├── fv-debug ─────── Surfer extension              [optional/late]
  └── fv-benchmarks    HWMCC, OpenTitan test data    [planned]
@@ -56,7 +56,7 @@ Because every boundary is a file, each repo is independently testable with golde
 | [slang](https://github.com/MikePopoloski/slang) | SV-2017 parse + elaboration |
 | [CIRCT](https://github.com/llvm/circt) | IR substrate; Moore/HW/Comb/Seq/ltl/verif dialects |
 | [Pono](https://github.com/stanford-centaur/pono) | IC3IA, k-induction, BMC |
-| [AVR](https://github.com/aman-goel/avr) | Alternative IC3/word-level engine |
+| [btormc](https://github.com/Boolector/boolector) | BTOR2 BMC + k-induction engine |
 | [Bitwuzla](https://github.com/bitwuzla/bitwuzla) | SMT backend |
 | [btor2tools](https://github.com/Boolector/btor2tools) | BTOR2 parse + witness format |
 | [Surfer](https://gitlab.com/surfer-project/surfer) | Waveform viewer (Rust, extensible) |
@@ -75,7 +75,7 @@ Stand up CI, `fv-benchmarks` with trivial designs, `slang` + CIRCT building. **M
 `sva-frontend` construct-by-construct, each gated by a conformance test against a simulator. `|->` / `|=>` / `##n` / `##[m:n]` first; repetition, `throughout`, `within` next; then unbounded operators and local variables.
 
 ### Phase 3 — Unbounded proofs (months 8–14)
-`fv-engine` portfolio: k-induction + IC3IA (Pono) + AVR racing. **Milestone:** unbounded PROOF on a non-trivial design.
+`fv-engine` portfolio: k-induction + IC3IA (Pono) + btormc racing. **Milestone:** unbounded PROOF on a non-trivial design.
 
 ### Phase 4 — Source-level debug (months 12–18)
 `witness-remap` → RTL-named FST. **Milestone:** engineer sees failing wave with their signal names.

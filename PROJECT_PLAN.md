@@ -49,7 +49,8 @@ These are consumed as libraries/submodules. Contribute patches upstream rather t
 | **slang** (MikePopoloski/slang) | MIT | SV-2017 parse + elaboration | Linked library. Untouched core. |
 | **CIRCT** (llvm/circt) | Apache-2.0 w/ LLVM exception | Moore/HW/Comb/Seq/`ltl`/`verif` dialects, `MooreToCore`, BTOR2 emission | Linked; our passes live in our repos but target CIRCT dialects. Upstream the generic ones. |
 | **Pono** (stanford-centaur/pono) | BSD-3 | IC3IA, k-induction, BMC | Subprocess (preferred) or linked. Not modified. |
-| **AVR** (aman-goel/avr) | *verify before use* (task P0.2) | Alternative IC3/word-level engine | Subprocess only, gated on license audit. |
+| **btormc** (ships with Boolector) | MIT | BTOR2 BMC + k-induction engine | Subprocess. |
+| **AVR** (aman-goel/avr) | GPLv3 — **dropped** by the P0.2 audit + `[FABLE]` review | ~~Alternative IC3/word-level engine~~ | **Not used.** Redundant with Pono+btormc; re-entry conditions in `LICENSES.md`. |
 | **Bitwuzla** | MIT | SMT backend behind the engines | Linked by the engines, not by us. |
 | **btor2tools** | MIT | BTOR2 parse/print/witness format | Linked in `witness-remap`. |
 | **Verilator / Icarus** | LGPL/GPL components | Conformance reference simulators | **Subprocess only**, dev/CI-time only, never shipped linked. |
@@ -72,7 +73,7 @@ These are consumed as libraries/submodules. Contribute patches upstream rather t
 - **Reuse:** Start from CIRCT's existing BTOR2 export. The metadata preservation is the new part and the one that makes Repo 5 possible.
 
 **Repo 4: `fv-engine`** *(orchestration, not engine authorship)*
-- **Does:** Runs Pono/AVR/btormc on the BTOR2; manages BMC depth, k-induction, IC3 invocation, engine portfolio + parallel racing, result aggregation (PROVEN / CEX@k / UNKNOWN / TIMEOUT). Emits a normalized `result.json` + raw witness.
+- **Does:** Runs Pono/btormc on the BTOR2; manages BMC depth, k-induction, IC3 invocation, engine portfolio + parallel racing, result aggregation (PROVEN / CEX@k / UNKNOWN / TIMEOUT). Emits a normalized `result.json` + raw witness.
 - **Reuse:** Engines as subprocesses. **We do not write a model checker.** Our value is selection, racing, and a clean result contract.
 
 **Repo 5: `witness-remap`** *(the second genuinely-new component)*
@@ -95,7 +96,7 @@ openfv (flagship)
  ├── sva-frontend ── (slang, CIRCT)
  ├── rtl-lowering ── (CIRCT)
  ├── btor2-emit ───── (CIRCT btor2)
- ├── fv-engine ────── (Pono, AVR, btormc, Bitwuzla)
+ ├── fv-engine ────── (Pono, btormc, Bitwuzla)
  ├── witness-remap ── (btor2tools)
  ├── fv-debug ─────── (Surfer)   [optional/late]
  └── fv-benchmarks    [test data, no code deps]
@@ -142,7 +143,7 @@ Phases overlap deliberately; each has a falsifiable milestone. The full task-lev
 | **0 — Skeleton** | weeks 1–4 | Org, CI templates, build pinning, clean-room benchmark designs, interface-contract specs, CLI skeleton | `openfv` parses + elaborates a trivial design end-to-end and exits cleanly |
 | **1 — Straight-line proof** | months 2–4 | Lowering + BTOR2 emission for simple sequential RTL; BMC orchestration; immediate assertions + `a \|-> b` | Prove/disprove a safety property on a real FIFO, with a (BTOR2-named) counterexample |
 | **2 — SVA frontend** | months 4–10 | The long pole. Construct-by-construct ladder (12 rungs, see TASKS.md), each gated by LRM-derived conformance vectors | Each rung: conformance pass + correct verdict on a known-good/known-bad design pair |
-| **3 — Unbounded proofs** | months 8–14 (overlaps 2) | k-induction + IC3IA + AVR portfolio racing; result normalization; soundness audit | Unbounded PROOF (not just BMC) on a non-trivial design |
+| **3 — Unbounded proofs** | months 8–14 (overlaps 2) | k-induction + IC3IA portfolio racing (Pono, btormc); result normalization; soundness audit | Unbounded PROOF (not just BMC) on a non-trivial design |
 | **4 — Source-level debug** | months 12–18 | Witness remap → RTL-named wave, failure cycle marked | Engineer opens a failing wave with *their* signal names in Surfer/GTKWave |
 | **5 — Visualize-class debugger** | months 18+, optional | Surfer-hosted cone-of-influence / driver tracing | Click an X, see why |
 
