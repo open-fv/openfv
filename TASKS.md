@@ -16,7 +16,7 @@ Every task is a **self-contained card**. An AI (or human) picking up a card need
 2. **Escalate, don't guess:** if the spec is ambiguous, incomplete, or a test contradicts it — stop, write up the ambiguity, tag `[FABLE]`. Each card lists known tripwires under *Escalate if*, but the rule applies generally.
 3. **Definition of done** for every card: acceptance criteria met, tests green in that repo's CI, `LICENSES.md` updated if a dependency was added, PR description cites the spec/LRM clauses implemented and affirms no copied code.
 4. Tasks within a phase may run in parallel unless *Depends* says otherwise.
-5. **Status tracking:** a card with no *Status* line is not started. Sessions picking up a card add `**Status:** 🔄 <branch/PR>`; on completion change it to `**Status:** ✅ <where the deliverable lives>` **and append ✅ to the card's heading** so done tasks are scannable.
+5. **Status tracking:** a card with no *Status* line is not started. Sessions picking up a card add `**Status:** 🔄 <branch/PR>`; on completion change it to `**Status:** ✅ <where the deliverable lives>` **and append a marker to the card's heading** so tasks are scannable: **🟡 = done from the implementer's side, PR open, awaiting review/merge** (name the PR in the heading); **✅ = merged and fully done.** The merging PR flips 🟡 → ✅.
 
 **ID scheme:** `P<phase>.<n>`; ladder rungs are `R<n>` with step suffixes (see Phase 2).
 
@@ -39,7 +39,7 @@ Every task is a **self-contained card**. An AI (or human) picking up a card need
 **Escalate if:** any license is not plainly one of the allowlisted ones — flag, don't interpret.
 **Status:** ✅ `LICENSES.md` in flagship covers all Tier-0 upstreams (the 10 from the plan §2 table **plus btormc/Boolector, MIT** — used by P1.6 but missing from the table; row added). Licenses verified from upstream LICENSE/COPYING files directly. Key findings: slang/CIRCT/Pono/Bitwuzla/btor2tools/btormc all on allowlist (MIT/Apache-2/BSD-3); **AVR is GPLv3** — `[FABLE]` review (2026-06-12) **dropped it from the plan**: redundant with Pono+btormc for all milestones, GPL stack underneath (Yices 2), permanent compliance surface; P3.2 closed blocked-by-license with re-entry conditions in `LICENSES.md`; Verilator (LGPLv3) and Icarus (GPLv2) approved as process-boundary dev/CI-only; GTKWave/libfst (GPLv2) approved as never-linked with vcd2fst subprocess decision recorded; Surfer (EUPL-1.2) approved for current file-based use, Phase 5 plugin work flagged for `[FABLE]` review.
 
-### P0.3 — Pinned, reproducible builds `[OPUS]` ✅
+### P0.3 — Pinned, reproducible builds `[OPUS]` 🟡 (infra merged in openfv#1; acceptance verification awaiting merge in openfv#4)
 **Repo:** rtl-lowering, sva-frontend, btor2-emit (CIRCT-dependent repos) · **Depends:** P0.1
 **Deliverable:** A `versions.txt` in the flagship pinning the LLVM/CIRCT and slang SHAs; per-repo CMake builds that fetch/build against exactly those pins; ccache wiring; a `docs/BUILDING.md` with a from-scratch Ubuntu LTS recipe that a fresh machine can follow verbatim.
 **Accept:** Clean checkout → documented commands → all three repos build and run a hello-world `*-opt` tool. Same SHAs everywhere.
@@ -51,7 +51,7 @@ Every task is a **self-contained card**. An AI (or human) picking up a card need
 **Deliverable:** GitHub Actions workflows: per-repo lint + build + unit-test on PR, with the CIRCT build cached as a restorable artifact keyed on `versions.txt` (a cold cache must not make every PR a 2-hour build); flagship workflow that additionally runs cross-repo integration tests and a (initially empty) nightly job skeleton; a DCO check.
 **Accept:** A trivial PR in each repo goes red on a deliberately broken test and green when fixed; warm-cache PR build < 15 min.
 
-### P0.5 — fv-benchmarks v0: clean-room trivial designs `[SONNET]`
+### P0.5 — fv-benchmarks v0: clean-room trivial designs `[SONNET]` 🟡 (awaiting merge: fv-benchmarks#1 + flagship pin bump openfv#3)
 **Repo:** fv-benchmarks · **Depends:** P0.1
 **Deliverable:** Written-from-scratch SystemVerilog: (a) parameterizable synchronous FIFO, (b) free-running counter with wrap, (c) one-hot round-robin arbiter. Each with 2–3 SVA properties — at least one that genuinely holds and one that is deliberately violated (e.g., FIFO `full && push` overflow with the guard removed) — and an `EXPECTED.md` stating, with a hand-walked argument, PROVEN/CEX and the earliest violation cycle for each property.
 **Accept:** Designs lint clean under Verilator (`--lint-only`); `EXPECTED.md` arguments are checkable by a reader in minutes; no code sourced from existing designs online.
