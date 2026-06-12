@@ -1,0 +1,49 @@
+# openfv nightly regression — SKELETON (task P0.4; filled in by P3.6).
+#
+# This is the scheduled-workflow skeleton required by P0.4. It runs on a nightly
+# cron and via manual dispatch, but does no regression work yet: the full
+# fv-benchmarks regression (PROVEN/CEX/UNKNOWN counts + solve-time trends,
+# correctness regressions fail / speed regressions warn) is task P3.6, which
+# depends on the pipeline existing (P3.4). Wiring the schedule now means P3.6 is
+# a body-fill, not a new-workflow task.
+#
+# Clean-room: authored from the GitHub Actions docs and PROJECT_PLAN.md §3
+# ("Nightly: full fv-benchmarks regression"); no workflow copied externally.
+name: Nightly
+
+on:
+  schedule:
+    # 07:00 UTC daily. Cron is UTC on GitHub-hosted runners.
+    - cron: '0 7 * * *'
+  workflow_dispatch: {}
+
+permissions:
+  contents: read
+
+jobs:
+  regression:
+    name: fv-benchmarks regression (skeleton)
+    runs-on: ubuntu-latest
+    # Only run the schedule on the canonical repo, never on forks.
+    if: github.repository == 'open-fv/openfv'
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Placeholder — documents what P3.6 will run
+        run: |
+          set -euo pipefail
+          cat <<'EOF'
+          openfv nightly regression — not yet implemented (skeleton).
+
+          P3.6 (TASKS.md) will fill this in to:
+            * check out the flagship with submodules at their pinned SHAs,
+            * download the pinned CIRCT install (deps/circt-* release asset),
+            * build the pipeline and run the FULL fv-benchmarks set,
+            * record PROVEN / CEX / UNKNOWN counts and solve times,
+            * publish a trend artifact per run,
+            * FAIL on a correctness regression, WARN on a speed regression.
+
+          Depends on: P3.4 (result reporting) and the fv-benchmarks set.
+          See PROJECT_PLAN.md §3 ("CI/CD in openfv: Nightly").
+          EOF
+          echo "Nightly skeleton ran successfully (no-op)."

@@ -1,0 +1,135 @@
+# openfv flagship CI (task P0.4).
+#
+# On every PR the flagship runs the cheap, always-correct checks:
+#   * spec validation     — the .locmap / result.json JSON-Schema examples
+#                           (P0.6) validate (pip install jsonschema + checker).
+#   * submodule sanity     — .gitmodules is consistent: every submodule is an
+#                           open-fv repo, its gitlink resolves, and its pinned
+#                           commit exists on its remote.
+#   * integration tests    — placeholder. The real cross-repo pipeline
+#                           integration test lands with P1.9 (Milestone M1);
+#                           until then this job documents the contract and
+#                           passes as a no-op so the wiring is in place.
+#
+# The heavy cross-repo build (all three CIRCT repos + the end-to-end pipeline)
+# is intentionally NOT run on PRs here — each CIRCT repo builds in its own CI
+# against the pinned, prebuilt CIRCT install (see those repos' ci.yml). The
+# flagship integration test is enabled at P1.9 once the pipeline exists.
+#
+# Clean-room: authored from the GitHub Actions docs and PROJECT_PLAN.md; no
+# workflow copied from any external source.
+name: CI
+
+on:
+  pull_request:
+    types: [opened, synchronize, reopened]
+
+permissions:
+  contents: read
+
+concurrency:
+  group: ci-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  specs:
+    name: Spec validation (P0.6 contracts)
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.x'
+
+      - name: Validate interface-contract specs
+        run: |
+          set -euo pipefail
+          python3 -m pip install --upgrade pip
+          pip install jsonschema
+          python3 docs/specs/check_specs.py
+
+  submodules:
+    name: Submodule consistency
+    runs-on: ubuntu-latest
+    steps:
+      - name: Check out flagship (no submodule content needed)
+        uses: actions/checkout@v4
+        with:
+          submodules: false
+
+      - name: Validate .gitmodules and submodule pins
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          set -euo pipefail
+
+          # 1. Every submodule path in .gitmodules must be a gitlink (mode 160000)
+          #    in the tree, point at an open-fv repo, and the pinned commit must
+          #    exist on that remote. This catches a .gitmodules entry that was
+          #    edited but never committed as a gitlink, or a dangling pin.
+          fail=0
+          paths="$(git config -f .gitmodules --get-regexp 'submodule\..*\.path' | awk '{print $2}')"
+          if [ -z "${paths}" ]; then
+            echo "::error::No submodules found in .gitmodules — the flagship must submodule the Tier-1 repos."
+            exit 1
+          fi
+
+          for path in ${paths}; do
+            name="$(git config -f .gitmodules --get-regexp "submodule\..*\.path" \
+                     | awk -v p="${path}" '$2==p {print $1}' \
+                     | sed -E 's/^submodule\.(.*)\.path$/\1/')"
+            url="$(git config -f .gitmodules --get "submodule.${name}.url")"
+            echo "== ${name}  path=${path}  url=${url}"
+
+            # URL must be an open-fv repo (project policy: all Tier-1 repos in the org).
+            case "${url}" in
+              *github.com/open-fv/*|*github.com:open-fv/*) : ;;
+              *) echo "::error::submodule ${name} url is not under github.com/open-fv: ${url}"; fail=1 ;;
+            esac
+
+            # The gitlink must exist in the tree at that path.
+            mode="$(git ls-tree HEAD "${path}" | awk '{print $1}')"
+            sha="$(git ls-tree HEAD "${path}" | awk '{print $3}')"
+            if [ "${mode}" != "160000" ]; then
+              echo "::error::${path} is not a committed submodule gitlink (mode=${mode:-<none>})"
+              fail=1
+              continue
+            fi
+
+            # The pinned commit must exist on the remote (catches a stale pin).
+            repo="$(echo "${url}" | sed -E 's#.*github.com[:/]##; s#\.git$##')"
+            if gh api "repos/${repo}/commits/${sha}" --silent 2>/dev/null; then
+              echo "   pin ${sha} exists on ${repo}"
+            else
+              echo "::error::submodule ${name} pin ${sha} not found on ${repo}"
+              fail=1
+            fi
+          done
+
+          if [ "${fail}" -ne 0 ]; then
+            echo "Submodule consistency check failed."
+            exit 1
+          fi
+          echo "All submodules consistent."
+
+  integration:
+    name: Integration tests (placeholder until P1.9)
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Cross-repo integration test (placeholder)
+        run: |
+          set -euo pipefail
+          # P0.4 ships this as a placeholder. The real end-to-end pipeline test
+          # (sva-frontend + rtl-lowering -> btor2-emit -> fv-engine -> witness)
+          # on the FIFO benchmark is task P1.9 (Milestone M1). It will:
+          #   * check out the flagship with submodules at their pinned SHAs,
+          #   * download the pinned CIRCT install (the deps/circt-* release asset),
+          #   * `openfv run benchmarks/fifo/fifo.f --top fifo` and diff a golden
+          #     result.json (timing fields masked).
+          # Until P1.9 lands there is no pipeline to exercise; this job is a
+          # documented no-op so the flagship's integration wiring exists now.
+          echo "Integration-test placeholder: nothing to run until P1.9 (M1)."
+          echo "See PROJECT_PLAN.md §3 and TASKS.md P1.9."

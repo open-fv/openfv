@@ -1,0 +1,132 @@
+# Seed the pinned-CIRCT dependency asset (task P0.4 — strategy (a), for pin bumps).
+#
+# Manually dispatched. Builds the pinned CIRCT/MLIR/LLVM toolchain from scratch
+# via scripts/bootstrap-circt.sh (driven by versions.txt), then packages the
+# install and publishes it as the deps/circt-<short-sha> release asset that the
+# per-repo PR workflows download. Run this once after every versions.txt CIRCT
+# pin bump; normal PRs never build CIRCT.
+#
+# WARNING: a cold CIRCT build is ~6,800 targets. On a 4-core ubuntu-latest
+# runner this can approach or exceed the 6-hour job limit. ccache is restored
+# across runs to make re-seeds (and a bump that only moves slang) far cheaper.
+# If the cold build does not fit the limit, run bootstrap-circt.sh on a larger
+# self-hosted runner or a dev box and upload the asset with `gh release create`
+# (see docs/BUILDING.md) — the PR workflows only care that the asset exists and
+# its pin stamp matches versions.txt.
+#
+# Clean-room: authored from the GitHub Actions docs and the openfv build model;
+# no workflow copied externally.
+name: Seed CIRCT cache
+
+on:
+  workflow_dispatch:
+    inputs:
+      publish_release:
+        description: 'Publish the install as the deps/circt-<sha> release asset'
+        type: boolean
+        default: true
+
+permissions:
+  contents: write   # needed to create/update the deps/circt-* release
+
+concurrency:
+  group: seed-circt
+  cancel-in-progress: false
+
+jobs:
+  seed:
+    name: Build + publish pinned CIRCT install
+    runs-on: ubuntu-latest
+    timeout-minutes: 350   # just under the 6h hard limit, to fail clean
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Install build dependencies (per docs/BUILDING.md)
+        run: |
+          set -euo pipefail
+          sudo apt-get update
+          sudo apt-get install -y --no-install-recommends \
+            build-essential cmake ninja-build ccache git \
+            python3 python3-pip zlib1g-dev libzstd-dev lld
+
+      - name: Resolve the pin
+        id: pin
+        run: |
+          set -euo pipefail
+          circt_sha="$(grep -E '^CIRCT_SHA=' versions.txt | cut -d= -f2 | tr -d '[:space:]')"
+          short="${circt_sha:0:8}"
+          echo "circt_sha=${circt_sha}" >> "$GITHUB_OUTPUT"
+          echo "short=${short}" >> "$GITHUB_OUTPUT"
+          echo "tag=deps/circt-${short}" >> "$GITHUB_OUTPUT"
+          echo "asset=circt-install-${short}.tar.zst" >> "$GITHUB_OUTPUT"
+
+      # ccache persists the heavy LLVM/CIRCT compile across re-seeds. Keyed on
+      # the pin; a pin bump starts a fresh (cold) cache.
+      - name: Restore ccache
+        uses: actions/cache@v4
+        with:
+          path: ~/.cache/ccache
+          key: seed-ccache-${{ steps.pin.outputs.circt_sha }}
+          restore-keys: |
+            seed-ccache-
+
+      - name: Build pinned CIRCT (scripts/bootstrap-circt.sh)
+        run: |
+          set -euo pipefail
+          ccache --max-size=20G
+          export OPENFV_DEPS_PREFIX="$PWD/.openfv-deps/install"
+          scripts/bootstrap-circt.sh --jobs "$(nproc)"
+          ccache --show-stats || true
+
+      - name: Verify the freshly-built pin stamp
+        env:
+          EXPECT: ${{ steps.pin.outputs.circt_sha }}
+        run: |
+          set -euo pipefail
+          got="$(tr -d '[:space:]' < .openfv-deps/install/share/openfv/circt-pin.txt)"
+          [ "${got}" = "${EXPECT}" ] || {
+            echo "::error::built pin (${got}) != versions.txt (${EXPECT})"; exit 1; }
+          echo "Pin stamp OK: ${got}"
+
+      - name: Package the install
+        id: pkg
+        env:
+          ASSET: ${{ steps.pin.outputs.asset }}
+        run: |
+          set -euo pipefail
+          tar -C .openfv-deps --use-compress-program='zstd -15 -T0' \
+            -cf "${ASSET}" install
+          sha256sum "${ASSET}" > "${ASSET}.sha256"
+          ls -lh "${ASSET}"
+
+      - name: Upload as workflow artifact (always)
+        uses: actions/upload-artifact@v4
+        with:
+          name: ${{ steps.pin.outputs.asset }}
+          path: |
+            ${{ steps.pin.outputs.asset }}
+            ${{ steps.pin.outputs.asset }}.sha256
+          retention-days: 7
+
+      - name: Publish the deps/circt-* release asset
+        if: ${{ inputs.publish_release }}
+        env:
+          GH_TOKEN: ${{ github.token }}
+          TAG: ${{ steps.pin.outputs.tag }}
+          ASSET: ${{ steps.pin.outputs.asset }}
+        run: |
+          set -euo pipefail
+          notes="Pinned CIRCT install for ${TAG}, built by the seed-circt-cache
+          workflow from versions.txt (CIRCT_SHA=${{ steps.pin.outputs.circt_sha }}).
+          Reproducible via scripts/bootstrap-circt.sh. Consumed by the per-repo
+          PR CI, which verifies the pin stamp against versions.txt."
+          if gh release view "${TAG}" --repo "${{ github.repository }}" >/dev/null 2>&1; then
+            gh release upload "${TAG}" "${ASSET}" "${ASSET}.sha256" \
+              --repo "${{ github.repository }}" --clobber
+          else
+            gh release create "${TAG}" "${ASSET}" "${ASSET}.sha256" \
+              --repo "${{ github.repository }}" \
+              --title "Pinned CIRCT install (${{ steps.pin.outputs.short }})" \
+              --notes "${notes}"
+          fi
+          echo "Published ${ASSET} to ${TAG}."
