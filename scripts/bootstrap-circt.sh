@@ -79,6 +79,14 @@ if command -v ccache >/dev/null; then
   CCACHE_ARGS=(-DLLVM_CCACHE_BUILD=ON)
 fi
 
+# LLVM link steps are multi-GB each; uncapped parallel links OOM hosts with
+# modest RAM (e.g. 16GB WSL VMs) long before compile parallelism is the limit.
+# lld also uses far less memory than GNU ld. Override via OPENFV_LINK_JOBS.
+LINKER_ARGS=(-DLLVM_PARALLEL_LINK_JOBS="${OPENFV_LINK_JOBS:-2}")
+if command -v ld.lld >/dev/null; then
+  LINKER_ARGS+=(-DLLVM_USE_LINKER=lld)
+fi
+
 # We build LLVM+MLIR (CIRCT's in-tree llvm) and CIRCT together. slang frontend
 # ON so circt-verilog (P0.7) and the slang lib are available; CIRCT fetches
 # slang $SLANG_TAG itself.
@@ -93,7 +101,8 @@ cmake -G Ninja -S "$SRC/llvm/llvm" -B "$BUILD" \
   -DCMAKE_INSTALL_PREFIX="$PREFIX" \
   -DCIRCT_SLANG_FRONTEND_ENABLED=ON \
   -DCIRCT_SLANG_BUILD_FROM_SOURCE=ON \
-  "${CCACHE_ARGS[@]}"
+  "${CCACHE_ARGS[@]}" \
+  "${LINKER_ARGS[@]}"
 
 cmake --build "$BUILD" -j "$JOBS"
 cmake --build "$BUILD" --target install -j "$JOBS"
