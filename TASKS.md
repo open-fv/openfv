@@ -42,6 +42,7 @@ Every task is a **self-contained card**. An AI (or human) picking up a card need
 **Deliverable:** A `versions.txt` in the flagship pinning the LLVM/CIRCT and slang SHAs; per-repo CMake builds that fetch/build against exactly those pins; ccache wiring; a `docs/BUILDING.md` with a from-scratch Ubuntu LTS recipe that a fresh machine can follow verbatim.
 **Accept:** Clean checkout → documented commands → all three repos build and run a hello-world `*-opt` tool. Same SHAs everywhere.
 **Escalate if:** the pinned CIRCT requires local patches to build — do not carry patches silently; flag for an upstream-first decision.
+**Status:** ✅ flagship: `versions.txt` (CIRCT/LLVM/slang pins, provenance-documented), `scripts/bootstrap-circt.sh` (build CIRCT once + ccache + pin-stamp), `cmake/OpenfvVersions.cmake` + `cmake/OpenfvCIRCT.cmake` (single-sourced pins, ccache wiring, pin-match verification), `docs/BUILDING.md` (from-scratch Ubuntu LTS recipe). Per-repo CMake + hello-world `*-opt` for rtl-lowering/sva-frontend/btor2-emit staged under `build-templates/` (the submodule repos don't exist yet — **P0.1 not done**; copy them in when it lands). Full build/acceptance run is deferred to CI (P0.4) / a dev box: cmake+CIRCT toolchain not present in the authoring env.
 
 ### P0.4 — CI templates `[OPUS]`
 **Repo:** all Tier-1 · **Depends:** P0.3

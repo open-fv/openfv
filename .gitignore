@@ -1,0 +1,11 @@
+# Build dependency tree produced by scripts/bootstrap-circt.sh (P0.3).
+# Heavy (CIRCT/LLVM checkout + build + install); never committed.
+/.openfv-deps/
+
+# CMake build trees
+build/
+*/build/
+build-templates/*/build/
+
+# ccache (if pointed inside the tree)
+.ccache/
