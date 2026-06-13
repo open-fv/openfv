@@ -159,9 +159,23 @@ Work is executed by a mix of AI tiers. The breakdown in TASKS.md labels every ta
 
 ### The tiers
 
+The tier names denote the *kind of judgment* a card needs, independent of which model is available to do it:
+
 - **[FABLE]** — semantic and architectural decisions: SVA semantics interpretation from the LRM, automaton constructions, dialect/schema design, soundness audits, anything where a *plausible-but-wrong* answer would silently corrupt results. Also reviews every merge into the semantic core.
 - **[OPUS]** — substantial implementation against a written spec: MLIR passes, C++ integration, conformance harness, engine orchestration, tricky CI. May make *engineering* choices (data structures, code layout) but no *semantic* choices.
 - **[SONNET]** — mechanical, well-specified, locally verifiable work: test vectors from a spec table, golden files, schema-conformant writers, benchmark curation, CLI plumbing, docs, dashboards.
+
+### Model mapping (current — Fable 5 unavailable)
+
+Fable 5 was withdrawn from availability (2026-06-13). Until it returns, cards are staffed as:
+
+| Tier | Model + reasoning effort |
+|---|---|
+| **[FABLE]** | **Opus at extra-high (`xhigh`) reasoning effort** |
+| **[OPUS]** | Opus at high reasoning effort |
+| **[SONNET]** | Sonnet (unchanged) |
+
+This preserves the *intent* of the tiering — maximum rigor on semantic cards — by raising reasoning effort rather than the model. The protocol below still holds: a `[FABLE]` card done at `xhigh` must still write the spec + LRM citations + acceptance tests *first* and treat genuine ambiguity as a stop-and-escalate to the human, not a license to guess. The one rule that changes: "semantic decisions made by AI below the Fable tier are invalid" (§1.4) is read, for now, as "semantic decisions must be made at `[FABLE]` staffing (Opus xhigh) with the spec-first discipline, and surfaced to the human in the PR." If Fable 5 returns, revert to Fable for these cards.
 
 ### The protocol (non-negotiable)
 
