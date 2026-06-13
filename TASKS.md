@@ -77,10 +77,11 @@ Every task is a **self-contained card**. An AI (or human) picking up a card need
 
 **Milestone M1:** `openfv run fifo.f --top fifo` proves the good property and produces `result.json` + a raw witness for the violated one, end-to-end in CI.
 
-### P1.1 — Lowering gap survey `[OPUS]`
+### P1.1 — Lowering gap survey `[OPUS]` 🟡 (awaiting merge: rtl-lowering#2)
 **Repo:** rtl-lowering · **Depends:** P0.3, P0.5
 **Deliverable:** Run every P0.5 benchmark through ImportVerilog → Moore → `MooreToCore` → HW/Comb/Seq. `GAPS.md`: every failure or wrong-looking lowering as an entry with a *minimal* SV repro (≤20 lines), the error/wrong output, and a first-guess classification (missing op, unsupported construct, bug).
 **Accept:** Every benchmark either lowers clean or has a GAPS.md entry with a repro that fails standalone.
+**Status:** 🟡 `survey/GAPS.md` + 5 minimal repros in rtl-lowering#2. **Finding: the RTL path is clean — no MooreToCore gaps; all gaps are in the assertion→core→BTOR2 leg.** Gap A (M1 blocker): `convert-hw-to-btor2` rejects the clock once a clocked assertion shares it (not general fan-out — plain regs are fine); belongs to P1.5/upstream. Gap B (by design): `lower-ltl-to-core` doesn't lower temporal SVA (`##`/`|=>`) — that's sva-frontend (Phase 2); bounds Phase-1 assertion scope to immediate + boolean-residual concurrent. Gap C: residual `llhd.process` from asserts, entangled with B, P1.2 pins the pass order. **Re-scopes P1.2** from "MooreToCore work" to "establish the assertion→core pass pipeline."
 
 ### P1.2 — Lowering gap fixes `[OPUS]` *(one sub-card per GAPS.md entry)*
 **Repo:** rtl-lowering · **Depends:** P1.1
