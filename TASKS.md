@@ -115,10 +115,11 @@ Every task is a **self-contained card**. An AI (or human) picking up a card need
 **Deliverable:** `assert (expr);` (immediate, in always blocks) lowered through `verif.assert` to a BTOR2 `bad` property; tests with one passing and one failing immediate assertion.
 **Accept:** Failing assertion found by P1.6 BMC at the hand-computed cycle; passing one survives the bound.
 
-### P1.8 — Clocking + sampling semantic foundation `[FABLE]`
-**Repo:** sva-frontend · **Depends:** P1.2
+### P1.8 — Clocking + sampling semantic foundation `[FABLE]` 🟡 (awaiting merge + ratification: sva-frontend#2)
+**Repo:** sva-frontend · **Depends:** P1.2 — **NOTE: dependency is reversed in practice.** The P1.1 survey showed P1.5's Gap A fix depends on *this* card (the sampling semantics + reference lowering), not vice versa. Do P1.8 before P1.5/P1.2's assertion lowering.
 **Deliverable:** The semantics doc that everything in Phase 2 builds on: how `@(posedge clk)` sampling maps onto the BTOR2 transition relation (preponed-region sampling, IEEE 1800-2017 §16.5.1/§4.4), reset/`disable iff` interaction deferred but slotted, and the reference lowering for the first concurrent assertion: `assert property (@(posedge clk) a |-> b);` with boolean `a`,`b` — including the acceptance tests.
 **Accept:** Doc cites clauses for every decision; the reference lowering proves/falsifies correctly on a known-good/known-bad pair added to fv-benchmarks.
+**Status:** 🟡 `docs/semantics/clocking-sampling.md` + validated reference (sva-frontend#2). Drafted **Opus-xhigh** (Fable down); **decisions D1–D5 need human ratification** before P1.5 builds against them. Reference lowering `clocked_assert P if EN, posedge clk` → `verif.assert(~EN | P)` validated on the circt-bmc+z3 oracle (good holds; bad CEX@cycle1) **and shown to resolve P1.1 Gap A** (valid BTOR2, 1 bad node). Two open follow-ups: promote good/bad pair to fv-benchmarks; confirm BTOR2→btormc verdict agreement (P1.6). circt-bmc-as-oracle recipe in [[circt-bmc-smt-oracle]].
 
 ### P1.9 — End-to-end integration test `[SONNET]`
 **Repo:** openfv · **Depends:** P1.4, P1.6, P1.7, P1.8
