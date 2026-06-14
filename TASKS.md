@@ -105,10 +105,11 @@ Every task is a **self-contained card**. An AI (or human) picking up a card need
 **Accept:** All benchmarks emit valid BTOR2 (validated by `btor2tools`' parser); per-op golden tests green.
 **Escalate if:** an op's BTOR2 mapping is semantically non-obvious (X-propagation, division-by-zero semantics) — write up options, tag `[FABLE]`.
 
-### P1.6 — fv-engine v0: BMC runner `[OPUS]`
+### P1.6 — fv-engine v0: BMC runner `[OPUS]` 🔨 in progress (engines built; runner remains)
 **Repo:** fv-engine · **Depends:** P0.6
 **Deliverable:** Subprocess orchestration of `btormc` and Pono in BMC mode: launch with depth/time limits, parse engine output (sat/unsat/unknown + witness), emit `result.json` per spec + the raw `.wit`. Robust to engine crash/timeout (reported as ERROR/TIMEOUT, never as PROVEN). Unit-tested against hand-written BTOR2 files with known answers.
 **Accept:** Known-SAT file → CEX@k with witness; known-UNSAT-to-depth file → correct bounded report (a bounded clean BMC run is **not** PROVEN — status must reflect that); kill -9 mid-run → ERROR.
+**Status:** 🔨 **Engine builds done** (prerequisite, PR openfv#7): `scripts/bootstrap-engines.sh` builds `btormc` (Boolector 3.2.3) + `pono` (ec4fe89, Bitwuzla+cvc5) into the shared prefix; both validated on the P1.8 reference BTOR2 (bad→sat+witness, good→proven via k-induction) and agree with the circt-bmc oracle. Engine output contracts captured for the parser: `btormc` CEX=`sat`+witness / safe=empty+exit0; `pono` CEX=`sat`+`b0` / bmc-no-cex=`unknown` / ind-proven=`unsat`. **Still TODO (the actual card):** the fv-engine subprocess runner — depth/time limits, output parsing, `result.json`+`.wit` emission per docs/specs, crash/timeout→ERROR/TIMEOUT robustness, unit tests. Note [[btor2-register-init-dropped]]: btor2-emit must produce clean, parseable BTOR2 (strip trailing MLIR) and decide preset→init (P1.5).
 
 ### P1.7 — Immediate assertions end-to-end `[SONNET]`
 **Repo:** rtl-lowering + btor2-emit · **Depends:** P1.2, P1.5
