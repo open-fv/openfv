@@ -42,3 +42,26 @@ LLVM_SHA=b7152ff7026a05282b6ae91ccf150ede0217b08a
 # Built-from-source by CIRCT via FetchContent at the tag below.
 SLANG_TAG=v10.0
 SLANG_SHA=6c4fa91bb592af0bd9fe8f359a721875a5188bfe
+
+# ---------------------------------------------------------------------------
+# BMC / model-checking engines (P1.6, fv-engine). Built by
+# scripts/bootstrap-engines.sh into the shared install prefix. Each top-level
+# pin transitively fixes its solver deps via the upstream's own contrib
+# scripts, so only these two SHAs need pinning here.
+# ---------------------------------------------------------------------------
+
+# Boolector/boolector — provides `btormc` (BTOR2 BMC + k-induction). MIT.
+# Its contrib/setup-*.sh transitively pin CaDiCaL + btor2tools (both MIT).
+BOOLECTOR_TAG=3.2.3
+
+# stanford-centaur/pono — IC3/k-induction/BMC over BTOR2. BSD-3.
+# Its contrib scripts transitively pin smt-switch (v1.1.3, BSD-3), whose
+# default backend set is Bitwuzla (122f27f9..., MIT) AND cvc5 (BSD-3; cvc5
+# transitively builds libpoly, LGPLv3+). We do NOT enable --with-msat /
+# --with-yices2 (non-BSD, excluded per plan §1.3).
+# LICENSE POSTURE: pono is invoked by fv-engine as a SUBPROCESS and built
+# locally by each user via bootstrap-engines.sh — these solvers are never
+# linked into openfv binaries and we never redistribute the built binaries,
+# so LGPL libpoly stays behind a process boundary (plan §1.3-compliant).
+# Flag for the LICENSES.md audit (P0.2 follow-up).
+PONO_SHA=ec4fe894013d91bd1ca3c6a0e6dea160a6756a4e
