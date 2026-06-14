@@ -141,6 +141,38 @@ of `versions.txt`.
 
 ---
 
+## 6. Build the BMC engines (P1.6, fv-engine)
+
+`fv-engine` invokes the model-checking engines as **subprocesses**. Build them
+into the same shared prefix with one script (pins in `versions.txt`):
+
+```sh
+sudo apt-get install -y meson bison flex libgmp-dev libmpfr-dev   # in addition to §1
+scripts/bootstrap-engines.sh --jobs "$(nproc)"
+```
+
+This builds:
+- **`btormc`** (Boolector `BOOLECTOR_TAG`, MIT) — BTOR2 BMC + k-induction. Fast
+  build (CaDiCaL + btor2tools + Boolector, a few minutes).
+- **`pono`** (`PONO_SHA`, BSD-3) — BMC / k-induction / IC3 over BTOR2. Heavier:
+  its smt-switch setup builds **Bitwuzla** (MIT) **and cvc5** (BSD-3, which
+  transitively builds libpoly, LGPLv3+). ~20–30 min. See the license posture
+  note in `versions.txt`: these solvers are subprocess-only and never linked
+  into or redistributed with openfv binaries.
+
+Both land in `$OPENFV_DEPS_PREFIX/bin`. Smoke-check:
+
+```sh
+printf '1 sort bitvec 1\n2 input 1\n3 constd 1 1\n4 eq 1 2 3\n5 bad 4\n' \
+  | tee /tmp/t.btor2 ; .openfv-deps/install/bin/btormc /tmp/t.btor2   # → sat
+```
+
+> **Re-running:** the upstream solver setup scripts refuse to reconfigure over a
+> partial `deps/` tree ("already exists, remove it manually"). For a clean Pono
+> rebuild, delete `.openfv-deps/engines/pono/deps/smt-switch` first.
+
+---
+
 ## Troubleshooting
 
 | Symptom | Cause / fix |
